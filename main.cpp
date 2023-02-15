@@ -12,17 +12,22 @@ public:
     string name;
 };
 
-std::list<Customer> customersList;
+list<Customer> customersList;
 
 void insert_customer() {
     cout << "=-=-=-=-=-= CADASTRO DE CLIENTE =-=-=-=-=-=" << endl;
 
     Customer customer;
     int aux_id = customer.id + 1;
+    string customer_age;
     customer.id = aux_id;
 
     cout << "Informe o nome: ";
-    cin >> customer.name;
+    getline(cin, customer.name);
+
+    cout << "Informe a idade: ";
+    getline(cin, customer_age);
+    customer.age = stoi(customer_age);
 
     customersList.push_back(customer);
 }
@@ -58,6 +63,8 @@ int menu() {
 
     cout << "Escolha uma opção: ";
     std::cin >> option;
+
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
     if (option == 1) {
         insert_customer();
