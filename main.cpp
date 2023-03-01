@@ -20,6 +20,7 @@ int menu() {
 
     int option;
     int retorno = 0;
+    Customer customer;
 
     cout << "Escolha uma opção: ";
     std::cin >> option;
@@ -28,16 +29,16 @@ int menu() {
 
     switch (option) {
         case 1:
-            Customer::insert_customer();
+            customer.insert_customer();
             break;
         case 2:
-            Customer::delete_customer();
+            customer.delete_customer();
             break;
         case 3:
-            Customer::update_customer();
+            customer.update_customer();
             break;
         case 4:
-            Customer::list_customer();
+            customer.list_customer();
             break;
         case 5:
             retorno = exit_program();
