@@ -67,5 +67,16 @@ public:
 
     static void list_customer() {
         cout << "=-=-=-=-=-= LISTAR CLIENTES =-=-=-=-=-=" << endl;
+
+                if(customerlist.size() > 0){
+    	    for( Customer customer:customersList){
+    		    cout<< "id:" << customer.id << endl;
+    		    cout<< "nome:" << customer.name << endl;
+        	    cout<< "idade:" << customer.age << endl;
+        	    cout<< '\n' << endl;
+    	    } else {
+    		    cout<< "Nenhum cliente cadastrado" << endl;
+    	    }
+        }
     }
 };
