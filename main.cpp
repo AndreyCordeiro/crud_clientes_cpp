@@ -1,49 +1,8 @@
 #include <iostream>
-#include <string>
-#include <list>
 #include <limits>
+#include "customer.cpp"
 
 using namespace std;
-
-class Customer {
-public:
-    int id = 0;
-    int age = 0;
-    string name;
-};
-
-list<Customer> customersList;
-
-void insert_customer() {
-    cout << "=-=-=-=-=-= CADASTRO DE CLIENTE =-=-=-=-=-=" << endl;
-
-    Customer customer;
-    int aux_id = customer.id + 1;
-    string customer_age;
-    customer.id = aux_id;
-
-    cout << "Informe o nome: ";
-    getline(cin, customer.name);
-
-    cout << "Informe a idade: ";
-    getline(cin, customer_age);
-    customer.age = stoi(customer_age);
-
-    customersList.push_back(customer);
-}
-
-void delete_customer() {
-    cout << "=-=-=-=-=-= EXCLUIR CLIENTE =-=-=-=-=-=" << endl;
-}
-
-
-void update_customer() {
-    cout << "=-=-=-=-=-= MODIFICAR CLIENTE =-=-=-=-=-=" << endl;
-}
-
-void list_customer() {
-    cout << "=-=-=-=-=-= LISTAR CLIENTES =-=-=-=-=-=" << endl;
-}
 
 int exit_program() {
     cout << "Fim do programa!" << endl;
@@ -66,19 +25,24 @@ int menu() {
 
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-    if (option == 1) {
-        insert_customer();
-    } else if (option == 2) {
-        delete_customer();
-    } else if (option == 3) {
-        update_customer();
-    } else if (option == 4) {
-        list_customer();
-    } else if (option == 5) {
-        exit_program();
-    } else {
-        cout << "Opção inválida" << endl;
-        return menu();
+    switch (option) {
+        case 1:
+            Customer::insert_customer();
+            break;
+        case 2:
+            Customer::delete_customer();
+            break;
+        case 3:
+            Customer::update_customer();
+            break;
+        case 4:
+            Customer::list_customer();
+            break;
+        case 5:
+            exit_program();
+            break;
+        default:
+            menu();
     }
 
     return 0;
@@ -88,5 +52,3 @@ int main() {
     menu();
     return 0;
 }
-
-
