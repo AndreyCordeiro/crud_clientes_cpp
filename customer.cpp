@@ -33,6 +33,32 @@ public:
 
     static void delete_customer() {
         cout << "=-=-=-=-=-= EXCLUIR CLIENTE =-=-=-=-=-=" << endl;
+
+        int id;
+
+        cout << "Informe o ID do cliente: ";
+        cin >> id;
+
+        auto it = customersList.begin();
+
+        while (it != customersList.end())
+        {
+
+            if (it->id == id)
+            {
+
+                it = customersList.erase(it);
+                cout << "Cliente excluido com sucesso!" << endl;
+                return;
+            }
+
+            else
+            {
+
+                ++it;
+            }
+            cout << "Cliente não encontrado" << endl;
+        }
     }
 
     static void update_customer() {
