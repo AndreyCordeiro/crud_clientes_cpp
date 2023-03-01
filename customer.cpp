@@ -41,20 +41,12 @@ public:
 
         auto it = customersList.begin();
 
-        while (it != customersList.end())
-        {
-
-            if (it->id == id)
-            {
-
-                it = customersList.erase(it);
+        while (it != customersList.end()) {
+            if (it->id == id) {
+                customersList.erase(it);
                 cout << "Cliente excluido com sucesso!" << endl;
                 return;
-            }
-
-            else
-            {
-
+            } else {
                 ++it;
             }
             cout << "Cliente não encontrado" << endl;
@@ -68,15 +60,15 @@ public:
     static void list_customer() {
         cout << "=-=-=-=-=-= LISTAR CLIENTES =-=-=-=-=-=" << endl;
 
-                if(customerlist.size() > 0){
-    	    for( Customer customer:customersList){
-    		    cout<< "id:" << customer.id << endl;
-    		    cout<< "nome:" << customer.name << endl;
-        	    cout<< "idade:" << customer.age << endl;
-        	    cout<< '\n' << endl;
-    	    } else {
-    		    cout<< "Nenhum cliente cadastrado" << endl;
-    	    }
+        if (!customersList.empty()) {
+            for (Customer customer: customersList) {
+                cout << "id:" << customer.id << endl;
+                cout << "nome:" << customer.name << endl;
+                cout << "idade:" << customer.age << endl;
+                cout << '\n' << endl;
+            }
+        } else {
+            cout << "Nenhum cliente cadastrado" << endl;
         }
     }
 };

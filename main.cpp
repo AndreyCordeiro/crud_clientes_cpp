@@ -1,5 +1,6 @@
 #include <iostream>
 #include <limits>
+#include "customer.cpp"
 
 using namespace std;
 
@@ -18,7 +19,7 @@ int menu() {
     cout << "5 - Sair" << endl;
 
     int option;
-    int retorno=0;
+    int retorno = 0;
 
     cout << "Escolha uma opção: ";
     std::cin >> option;
@@ -49,12 +50,12 @@ int menu() {
 }
 
 int main() {
-   int option = menu();
-	
-    while(option == 0){
-		menu();
-		option =0;
-	}
+    int option = menu();
+
+    while (option == 0) {
+        menu();
+        option = 0;
+    }
 
     return 0;
 }
