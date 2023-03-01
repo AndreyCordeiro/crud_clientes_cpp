@@ -54,7 +54,33 @@ public:
     }
 
     static void update_customer() {
-        cout << "=-=-=-=-=-= MODIFICAR CLIENTE =-=-=-=-=-=" << endl;
+    cout << "=-=-=-=-=-= MODIFICAR CLIENTE =-=-=-=-=-=" << endl;
+        int id;
+        cout << "Informe o id do cliente que será modificado: ";
+        cin >> id;
+        bool found = false;
+
+        for (auto &customer : customersList)
+        {
+            if (customer.id == id)
+            {
+                found = true;
+                cout << "Informe o nome: " << endl;
+                getline(cin, customer.name);
+
+                string customer_age;
+                cout << "Informe a idade: " << endl;
+                getline(cin, customer_age);
+                customer.age = stoi(customer_age);
+
+                cout << "Cliente atualizado" << endl;
+            }
+        }
+
+        if (!found)
+        {
+            cout << "Cliente não encontrado" << endl;
+        }
     }
 
     static void list_customer() {
