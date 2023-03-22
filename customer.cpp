@@ -9,6 +9,7 @@ struct Customer {
     int id;
     int age;
     char name[75];
+    char role;
 
     Customer *holder;
 };
@@ -28,8 +29,6 @@ void insert_customer() {
     scanf("%c", &isHolder);
 
     if (isHolder == 'D') {
-        cout << "Entrou para cadastros de dependente" << endl;
-
         if (customers.empty()) {
             cout << "Não há Clientes cadastrados!" << endl;
             return;
@@ -46,14 +45,15 @@ void insert_customer() {
                 break;
             }
         }
-    }
 
-    if (!found) {
-        cout << "Não foi encontrado um Titular com esse código." << endl;
-        return;
+        if (!found) {
+            cout << "Não foi encontrado um Titular com esse código." << endl;
+            return;
+        }
     }
 
     customer->id = ++lastId;
+    customer->role = isHolder;
 
     cout << "Informe o nome: " << endl;
     scanf("%s", customer->name);
@@ -122,6 +122,7 @@ void list_customer() {
             cout << "Id: " << customer->id << endl;
             cout << "Nome: " << customer->name << endl;
             cout << "Idade: " << customer->age << endl;
+            cout << "Tipo: " << customer->role << endl;
             cout << '\n' << endl;
         }
     } else {
