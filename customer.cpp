@@ -19,8 +19,41 @@ void insert_customer() {
     cout << "=-=-=-=-=-= CADASTRO DE CLIENTE =-=-=-=-=-=" << endl;
 
     Customer *customer = new Customer;
-    int lastId = 0;
-    customer->id = ++lastId; //TODO corrigir a geração de ID
+    static int lastId = 0;
+    char isHolder = 'T';
+    int holderId;
+    bool found = false;
+
+    cout << "Cadastrar Titular ou Dependente? (T/D): " << endl;
+    scanf("%c", &isHolder);
+
+    if (isHolder == 'D') {
+        cout << "Entrou para cadastros de dependente" << endl;
+
+        if (customers.empty()) {
+            cout << "Não há Clientes cadastrados!" << endl;
+            return;
+        }
+
+        cout << "Informe o código do Titular: " << endl;
+        scanf("%i", &holderId);
+
+        for (auto &it: customers) {
+            if (it->id == holderId) {
+                found = true;
+
+                customer->holder = it;
+                break;
+            }
+        }
+    }
+
+    if (!found) {
+        cout << "Não foi encontrado um Titular com esse código." << endl;
+        return;
+    }
+
+    customer->id = ++lastId;
 
     cout << "Informe o nome: " << endl;
     scanf("%s", customer->name);
@@ -53,15 +86,16 @@ void delete_customer() {
     }
 }
 
-//TODO corrigir a função de atualizar
 void update_customer() {
     cout << "=-=-=-=-=-= MODIFICAR CLIENTE =-=-=-=-=-=" << endl;
+
     int id;
+
     cout << "Informe o id do cliente que será modificado: ";
     cin >> id;
     bool found = false;
 
-    for (const auto customer: customers) {
+    for (auto customer: customers) {
         if (customer->id == id) {
             found = true;
 
@@ -69,7 +103,7 @@ void update_customer() {
             scanf("%s", customer->name);
 
             cout << "Informe a idade: " << endl;
-            scanf("%i", customer->age);
+            scanf("%i", &customer->age);
 
             cout << "Cliente atualizado!" << endl;
         }
