@@ -30,7 +30,7 @@ void insert_customer() {
 
     if (isHolder == 'D') {
         if (customers.empty()) {
-            cout << "Não há Clientes cadastrados!" << endl;
+            cout << "\nNão há clientes cadastrados, cadastre um cliente Titular antes de cadastrar um cliente Dependente!\n" << endl;
             return;
         }
 
@@ -67,6 +67,11 @@ void insert_customer() {
 void delete_customer() {
     cout << "=-=-=-=-=-= EXCLUIR CLIENTE =-=-=-=-=-=" << endl;
 
+    if (customers.empty()) {
+        cout << "\nNão há clientes cadastrados, cadastre um cliente antes de executar essa ação!\n" << endl;
+        return;
+    }
+
     int id;
 
     cout << "Informe o ID do cliente: " << endl;
@@ -88,6 +93,11 @@ void delete_customer() {
 
 void update_customer() {
     cout << "=-=-=-=-=-= MODIFICAR CLIENTE =-=-=-=-=-=" << endl;
+
+    if (customers.empty()) {
+        cout << "\nNão há clientes cadastrados, cadastre um cliente antes de executar essa ação!\n" << endl;
+        return;
+    }
 
     int id;
 
@@ -117,16 +127,19 @@ void update_customer() {
 void list_customer() {
     cout << "=-=-=-=-=-= LISTAR CLIENTES =-=-=-=-=-=" << endl;
 
-    if (!customers.empty()) {
-        for (const auto customer: customers) {
-            cout << "Id: " << customer->id << endl;
-            cout << "Nome: " << customer->name << endl;
-            cout << "Idade: " << customer->age << endl;
-            cout << "Tipo: " << customer->role << endl;
-            cout << '\n' << endl;
-        }
-    } else {
-        cout << "Nenhum cliente cadastrado." << endl;
+    if (customers.empty()) {
+        cout << "\nNão há clientes cadastrados, cadastre um cliente antes de executar essa ação!\n" << endl;
+        return;
+    }
+
+   for (const auto customer: customers) {
+        string customerRole = customer->role == 'T' ? "Titular" : "Dependente";
+
+        cout << "Id: " << customer->id << endl;
+        cout << "Nome: " << customer->name << endl;
+        cout << "Idade: " << customer->age << endl;
+        cout << "Tipo Cadastro: " << customerRole << endl;
+        cout << '\n' << endl;
     }
 }
 
