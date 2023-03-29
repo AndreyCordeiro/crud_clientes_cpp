@@ -10,6 +10,7 @@ struct Customer {
     int age;
     char name[75];
     char role;
+    int qtdDependents;
 
     Customer *holder;
 };
@@ -31,18 +32,25 @@ void insert_customer() {
     if (isHolder == 'D') {
         if (customers.empty()) {
             cout << "\nNão há clientes cadastrados, cadastre um cliente Titular antes de cadastrar um cliente Dependente!\n" << endl;
+            delete customer;
             return;
         }
 
         cout << "Informe o código do Titular: " << endl;
         scanf("%i", &holderId);
 
-        for (auto &it: customers) {
+        for (auto it: customers) {
             if (it->id == holderId) {
-                found = true;
+                if (it->holder != nullptr) {
+                    cout << "\nInforme o ID de um cliente que não seja Dependente!\n" << endl;
+                    return;
+                } else {
+                    found = true;
 
-                customer->holder = it;
-                break;
+                    it->qtdDependents++;
+                    customer->holder = it;
+                    break;
+                }
             }
         }
 
@@ -50,6 +58,8 @@ void insert_customer() {
             cout << "Não foi encontrado um Titular com esse código." << endl;
             return;
         }
+    } else {
+        customer->holder = nullptr;
     }
 
     customer->id = ++lastId;
@@ -81,14 +91,19 @@ void delete_customer() {
 
     while (it != customers.end()) {
         if ((*it)->id == id) {
+            if ((*it)->qtdDependents > 0) {
+                cout << "Não é possível excluir este cliente pois ele possui " << (*it)->qtdDependents << " dependentes!" << endl;
+                return;
+            }
+
             customers.erase(it);
             cout << "Cliente excluido com sucesso!" << endl;
             return;
         } else {
             ++it;
         }
-        cout << "Cliente não encontrado" << endl;
     }
+    cout << "Cliente não encontrado" << endl;
 }
 
 void update_customer() {
@@ -139,6 +154,11 @@ void list_customer() {
         cout << "Nome: " << customer->name << endl;
         cout << "Idade: " << customer->age << endl;
         cout << "Tipo Cadastro: " << customerRole << endl;
+
+        if (customer->role == 'T') {
+            cout << "Qtd Dependentes: " << customer->qtdDependents << endl;
+        }
+
         cout << '\n' << endl;
     }
 }
