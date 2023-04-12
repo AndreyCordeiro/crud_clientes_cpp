@@ -11,7 +11,7 @@ struct Customer {
     char name[75];
     char role;
     int qtdDependents;
-
+	int holderId;
     Customer *holder;
 };
 
@@ -23,7 +23,7 @@ void insert_customer() {
     Customer *customer = new Customer;
     static int lastId = 0;
     char isHolder = 'T';
-    int holderId;
+    int holderIdDig;
     bool found = false;
 
     cout << "Cadastrar Titular ou Dependente? (T/D): " << endl;
@@ -37,12 +37,13 @@ void insert_customer() {
         }
 
         cout << "Informe o código do Titular: " << endl;
-        scanf("%i", &holderId);
+        scanf("%i", &holderIdDig);
 
         for (auto it: customers) {
-            if (it->id == holderId) {
+            if (it->id == holderIdDig) {
                 if (it->holder != nullptr) {
                     cout << "\nInforme o ID de um cliente que não seja Dependente!\n" << endl;
+                    delete customer;
                     return;
                 } else {
                     found = true;
@@ -64,13 +65,13 @@ void insert_customer() {
 
     customer->id = ++lastId;
     customer->role = isHolder;
-
+	customer ->holderId = holderIdDig;;
     cout << "Informe o nome: " << endl;
     scanf("%s", customer->name);
 
     cout << "Informe a idade: " << endl;
     scanf("%i", &customer->age);
-
+	
     customers.push_back(customer);
 }
 
@@ -95,9 +96,16 @@ void delete_customer() {
                 cout << "Não é possível excluir este cliente pois ele possui " << (*it)->qtdDependents << " dependentes!" << endl;
                 return;
             }
+			//Arrumar para deduzir o dependente quando excluido
+			for (const auto customer: customers){
+				if((*it)-> holderId == customer -> id){
+				customer -> qtdDependents--;
+				}
+			}
 
             customers.erase(it);
             cout << "Cliente excluido com sucesso!" << endl;
+            
             return;
         } else {
             ++it;
@@ -148,7 +156,7 @@ void list_customer() {
     }
 
    for (const auto customer: customers) {
-        string customerRole = customer->role == 'T' ? "Titular" : "Dependente";
+        string customerRole = (customer->role == 'T') ? "Titular" : "Dependente";
 
         cout << "Id: " << customer->id << endl;
         cout << "Nome: " << customer->name << endl;
