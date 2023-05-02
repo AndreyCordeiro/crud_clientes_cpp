@@ -18,12 +18,26 @@ struct Customer {
 
 FILE *customer_file;
 FILE *customer_last_id;
+
 std::list<Customer *> customers;
+
+bool check_customer_with_dependent(int customerId, FILE* customer_file) {
+    Customer customer;
+
+    fseek(customer_file, 0, SEEK_SET);
+
+    while (fread(&customer, sizeof(Customer), 1, customer_file) == 1) {
+        if (customer.holderId == customerId) {
+            return true;
+        }
+    }
+    return false;
+}
 
 void insert_customer() {
     cout << "=-=-=-=-=-= CADASTRO DE CLIENTE =-=-=-=-=-=" << endl;
 
-    Customer *customer = new Customer;
+    Customer customer, new_customer;
     int lastId;
     char isHolder = 'T';
     int holderIdDig;
@@ -36,43 +50,54 @@ void insert_customer() {
     scanf("%c", &isHolder);
 
     if (isHolder == 'D') {
-        cout << "Informe o código do Titular: " << endl;
-        scanf("%i", &holderIdDig);
+        bool holderFound = false;
+        bool holderHasDependent = false;
 
-        for (auto it: customers) {
-            if (it->id == holderIdDig) {
-                if (it->holder != nullptr) {
-                    cout << "\nInforme o ID de um cliente que não seja Dependente!\n" << endl;
-                    delete customer;
-                    return;
-                } else {
-                    found = true;
+        do {
+            cout << "Informe o código do Titular: " << endl;
+            scanf("%i", &holderIdDig);
 
-                    it->qtdDependents++;
-                    customer->holder = it;
+            fseek(customer_file, 0, SEEK_SET);
+            while(fread(&customer, sizeof(Customer), 1, customer_file) == 1) {
+                if (customer.id == holderIdDig && !check_customer_with_dependent(customer.id, customer_file)) {
+                    new_customer.holderId = holderIdDig;
+                    holderFound = true;
                     break;
                 }
             }
-        }
+
+            if (holderIdDig == 0) {
+                return;
+            }
+
+            if(!holderFound) {
+                cout << "Código de titular não encontrado!";
+            }
+        } while (!holderFound);
 
         if (!found) {
             cout << "Não foi encontrado um Titular com esse código." << endl;
             return;
         }
     } else {
-        customer->holder = nullptr;
+        new_customer.holder = nullptr;
     }
 
-    customer->id = ++lastId;
-    customer->role = isHolder;
-	customer ->holderId = holderIdDig;;
+    new_customer.id = ++lastId;
+    new_customer.role = isHolder;
+	new_customer.holderId = holderIdDig;
+
     cout << "Informe o nome: " << endl;
-    scanf("%s", customer->name);
+    scanf("%s", new_customer.name);
 
     cout << "Informe a idade: " << endl;
-    scanf("%i", &customer->age);
-	
-    customers.push_back(customer);
+    scanf("%i", &new_customer.age);
+
+    fseek(customer_file, 0, SEEK_END);
+    fwrite(&new_customer, sizeof(Customer), 1, customer_file);
+
+    fseek(customer_last_id, 0, SEEK_SET);
+    fwrite(&lastId, sizeof(int), 1, customer_last_id);
 }
 
 void delete_customer() {
@@ -150,21 +175,20 @@ void update_customer() {
 void list_customer() {
     cout << "=-=-=-=-=-= LISTAR CLIENTES =-=-=-=-=-=" << endl;
 
-    Customer *customer = new Customer;
+    Customer customer;
     fseek(customer_file, 0, SEEK_SET);
 
     while (fread(&customer, sizeof(customer), 1, customer_file)) {
-        string customerRole = (customer->role == 'T') ? "Titular" : "Dependente";
+        string customerRole = (customer.role == 'T') ? "Titular" : "Dependente";
 
-        cout << "Id: " << customer->id << endl;
-        cout << "Nome: " << customer->name << endl;
-        cout << "Idade: " << customer->age << endl;
+        cout << "Id: " << customer.id << endl;
+        cout << "Nome: " << customer.name << endl;
+        cout << "Idade: " << customer.age << endl;
         cout << "Tipo Cadastro: " << customerRole << endl;
 
-        if (customer->role == 'T') {
-            cout << "Qtd Dependentes: " << customer->qtdDependents << endl;
+        if (customer.role == 'T') {
+            cout << "Qtd Dependentes: " << customer.qtdDependents << endl;
         }
-
         cout << '\n' << endl;
     }
 
@@ -248,7 +272,7 @@ int menu() {
 int main() {
     open_file_customer();
     open_file_last_id();
-
+    
     menu();
 
     return 0;
