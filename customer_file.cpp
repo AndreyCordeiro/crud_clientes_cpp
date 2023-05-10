@@ -1,45 +1,39 @@
+#include <cstdio>
 #include <iostream>
-#include <string>
-#include <list>
-#include <limits>
-#include <fstream>
+#include <cstring>
 
 using namespace std;
 
-struct Customer {
-    int id;
-    int age;
-    char name[75];
-    char role;
-    int qtdDependents;
-	int holderId;
-    Customer *holder;
-    bool active = false;
+struct cliente {
+    char nome[50];
+    int codigo;
+    int idade;
+    int titular = 0;
+    bool ativo = false;
 };
 
-FILE *customer_file;
-FILE *customer_last_id;
+FILE *fp_cliente;
+FILE *fp_ultimo_codigo;
 
-bool check_customer_with_dependent(int customerId, FILE* customer_file) {
-    Customer customer;
+bool verificar_se_cliente_possui_dependente(int codigo_cliente, FILE* fp_cliente) {
+    cliente cliente;
+    fseek(fp_cliente, 0, SEEK_SET);
 
-    fseek(customer_file, 0, SEEK_SET);
-
-    while (fread(&customer, sizeof(Customer), 1, customer_file) == 1) {
-        if (customer.active && customer.holderId == customerId) {
+    while (fread(&cliente, sizeof(cliente), 1, fp_cliente) == 1) {
+        if (cliente.ativo && cliente.titular == codigo_cliente) {
             return true;
         }
     }
     return false;
 }
 
-bool check_holder_with_dependente(int customerId, FILE* customer_file) {
-    Customer customer;
-    fseek(customer_file, 0, SEEK_SET);
+bool verificar_se_cliente_e_titular(int codigo_cliente, FILE* fp_cliente) {
+    cliente cliente;
+    fseek(fp_cliente, 0, SEEK_SET);
 
-    while (fread(&customer, sizeof(Customer), 1, customer_file) == 1) {
-        if (customer.active && customer.holderId == customerId) {
-            if (check_customer_with_dependent(customer.id, customer_file)) {
+    while (fread(&cliente, sizeof(cliente), 1, fp_cliente) == 1) {
+        if (cliente.ativo && cliente.titular == codigo_cliente) {
+            if (verificar_se_cliente_possui_dependente(cliente.codigo, fp_cliente)) {
                 return true;
             }
         }
@@ -47,270 +41,250 @@ bool check_holder_with_dependente(int customerId, FILE* customer_file) {
     return false;
 }
 
-void insert_customer() {
+void cadastrar_cliente() {
     cout << "=-=-=-=-=-= CADASTRO DE CLIENTE =-=-=-=-=-=" << endl;
 
-    Customer customer, new_customer;
-    int lastId;
-    char isHolder = 'T';
-    int holderIdDig;
+    int ultimo_codigo;
+    char ehTitular = 'T';
+    int codigoTitular;
+    cliente cliente, novo_cliente;
 
-    fseek(customer_last_id, 0, SEEK_SET);
-    fread(&lastId, sizeof(int), 1, customer_last_id);
+    fseek(fp_ultimo_codigo, 0, SEEK_SET);
+    fread(&ultimo_codigo, sizeof(int), 1, fp_ultimo_codigo);
 
-    new_customer.id = ++lastId;
-    
-    cout << "Cadastrar Titular ou Dependente? (T/D): " << endl;
-    scanf("%c", &isHolder);
+    novo_cliente.codigo = ++ultimo_codigo;
 
-    if (isHolder == 'D') {
-        bool holderFound = false;
-        bool holderHasDependent = false;
+    cout << "Titular ou Dependente? (T/D) \n";
+    scanf(" %c", &ehTitular);
+
+    if (ehTitular == 'D') {
+        bool titular_encontrado = false;
+        bool titular_com_dependentes = false;
 
         do {
-            cout << "Informe o código do Titular: " << endl;
-            scanf("%i", &holderIdDig);
+            cout << "Informe o código do titular: \n";
+            scanf("%i", &codigoTitular);
 
-            fseek(customer_file, 0, SEEK_SET);
-            while(fread(&customer, sizeof(Customer), 1, customer_file) == 1) {
-                if (customer.id == holderIdDig && !check_customer_with_dependent(customer.id, customer_file)) {
-                    new_customer.holderId = holderIdDig;
-                    holderFound = true;
+            fseek(fp_cliente, 0, SEEK_SET);
+            while (fread(&cliente, sizeof(cliente), 1, fp_cliente) == 1) {
+                if (cliente.codigo == codigoTitular && !verificar_se_cliente_possui_dependente(cliente.codigo, fp_cliente)) {
+                    novo_cliente.titular = codigoTitular;
+                    titular_encontrado = true;
                     break;
                 }
             }
 
-            if (holderIdDig == 0) {
+            if(codigoTitular == 0) {
                 return;
             }
 
-            if(!holderFound) {
-            cout << "Não foi encontrado um Titular com esse código." << endl;
-            return;
+            if (!titular_encontrado) {
+                cout << "Titular não encontrado!\n";
             }
-        } while (!holderFound);
-    } else {
-        new_customer.holder = nullptr;
+        } while (!titular_encontrado);
     }
 
-    new_customer.role = isHolder;
-	new_customer.holderId = holderIdDig;
-    new_customer.active = true;
+    cout << "Digite o nome:\n";
+    scanf("%s", novo_cliente.nome);
 
-    cout << "Informe o nome: " << endl;
-    scanf("%s", new_customer.name);
+    cout << "Digite a idade:\n";
+    scanf("%i", &novo_cliente.idade);
 
-    cout << "Informe a idade: " << endl;
-    scanf("%i", &new_customer.age);
+    novo_cliente.ativo = true;
 
-    fseek(customer_file, 0, SEEK_END);
-    fwrite(&new_customer, sizeof(Customer), 1, customer_file);
+    fseek(fp_cliente, 0, SEEK_END);
+    fwrite(&novo_cliente, sizeof(cliente), 1, fp_cliente);
 
-    fseek(customer_last_id, 0, SEEK_SET);
-    fwrite(&lastId, sizeof(int), 1, customer_last_id);
+    fseek(fp_ultimo_codigo, 0, SEEK_SET);
+    fwrite(&ultimo_codigo, sizeof(int), 1, fp_ultimo_codigo);
 }
 
-void delete_customer() {
-    cout << "=-=-=-=-=-= EXCLUIR CLIENTE =-=-=-=-=-=" << endl;
+void listar_clientes () {
+    cout << "=-=-=-=-=-= LISTAR CLIENTES =-=-=-=-=-=" << endl;
 
-    Customer customer;
-    int id;
+	cliente cliente;
 
-    cout << "Informe o ID do cliente: " << endl;
-    cin >> id;
+	fseek(fp_cliente, 0, SEEK_SET);
 
-    fseek(customer_file, 0, SEEK_SET);
+	printf("\n");
 
-    if (check_holder_with_dependente(id, customer_file)) {
-        printf("O cliente não pode ser excluído pois ele está sendo usado como titular!\n");
+	while (fread(&cliente, sizeof(cliente), 1, fp_cliente)) {
+		if (cliente.ativo == false)
+			continue;
+
+		printf("Codigo: %i\n", cliente.codigo);
+		printf("Nome: %s\n",  cliente.nome);
+		printf("Idade: %i\n",  cliente.idade);
+		cout << "Código titular: " << cliente.titular << "\n";
+		printf("\n");
+	}
+	// fseek(fp_cliente, 0, SEEK_END);
+}
+
+void alterar_cliente() {
+    cout << "=-=-=-=-=-= ALTERAR DE CLIENTE =-=-=-=-=-=" << endl;
+
+	cliente cliente;
+	int codigo;
+    
+	fseek(fp_cliente, 0, SEEK_SET);
+
+	printf("Digite o codigo do Cliente a ser editado: ");
+	scanf(" %i", &codigo);
+    
+	while(fread(&cliente, sizeof(cliente), 1, fp_cliente) == 1) { 
+		if(cliente.codigo == codigo) {
+			fseek(fp_cliente, -sizeof(cliente), SEEK_CUR);
+			
+			printf("Digite seu nome:\n");
+			scanf("%s", cliente.nome);
+
+			printf("Digite a Idade:\n");
+			scanf("%i", &cliente.idade);
+		    
+			fwrite(&cliente, sizeof(cliente), 1, fp_cliente);
+						
+			return;
+		} 
+	}
+	printf("Nenhum cliente encontrado...\n");
+}
+
+void excluir_cliente() {
+    cout << "=-=-=-=-=-= EXCLUIR DE CLIENTE =-=-=-=-=-=" << endl;
+
+    cliente cliente;
+    int codigo;
+
+    printf("Digite o codigo do Cliente a ser excluido:\n");
+    scanf("%i", &codigo);
+
+    if (verificar_se_cliente_e_titular(codigo, fp_cliente)) {
+        printf("O cliente nao pode ser excluido porque é titular de algum cliente com dependentes.\n");
         return;
     }
 
-    while (fread(&customer, sizeof(Customer), 1, customer_file) == 1) {
-        if (customer.id == id) {
-            if (customer.qtdDependents > 0) {
-                cout << "Não é possível excluir este cliente pois ele possui " << customer.qtdDependents << " dependentes!" << endl;
-                return;
-            }
-            
-            customer.active;
-            fseek(customer_file, -sizeof(Customer), SEEK_CUR);
-            fwrite(&customer, sizeof(Customer), 1, customer_file);
+    fseek(fp_cliente, 0, SEEK_SET);
 
-            cout << "Cliente excluido com sucesso!" << endl;
+    while (fread(&cliente, sizeof(cliente), 1, fp_cliente) == 1) {
+        if (cliente.codigo == codigo) {
+            cliente.ativo = false;
+
+            fseek(fp_cliente, -sizeof(cliente), SEEK_CUR);
+            fwrite(&cliente, sizeof(cliente), 1, fp_cliente);
+
+            printf("Cliente excluido com sucesso!\n");
+            return;
         }
     }
-    cout << "Cliente não encontrado" << endl;
+    printf("Nao foi encontrado nenhum cliente com esse codigo...\n");
 }
 
-void update_customer() {
-    cout << "=-=-=-=-=-= MODIFICAR CLIENTE =-=-=-=-=-=" << endl;
+FILE* abrir_criar_arquivo (char *fname) {
+	FILE* fp = fopen(fname, "r+b");
 
-    int id;
+	if (!fp) {
+		fp = fopen(fname, "wb");
 
-    cout << "Informe o id do cliente que será modificado: ";
-    cin >> id;
-    bool found = false;
-
-    // for (auto customer: customers) {
-    //     if (customer->id == id) {
-    //         found = true;
-
-    //         cout << "Informe o nome: " << endl;
-    //         scanf("%s", customer->name);
-
-    //         cout << "Informe a idade: " << endl;
-    //         scanf("%i", &customer->age);
-
-    //         cout << "Cliente atualizado!" << endl;
-    //     }
-    // }
-
-    if (!found) {
-        cout << "Cliente não encontrado" << endl;
-    }
-}
-
-void list_customers() {
-    cout << "=-=-=-=-=-= LISTAR CLIENTES =-=-=-=-=-=" << endl;
-
-    Customer customer;
-    fseek(customer_file, 0, SEEK_SET);
-
-    while (fread(&customer, sizeof(customer), 1, customer_file)) {
-        if (customer.active == false) continue;
-
-        string customerRole = (customer.role == 'T') ? "Titular" : "Dependente";
-
-        cout << "Id: " << customer.id << endl;
-        cout << "Nome: " << customer.name << endl;
-        cout << "Idade: " << customer.age << endl;
-        cout << "Tipo Cadastro: " << customerRole << endl;
-
-        if (customer.role == 'T') {
-            cout << "Qtd Dependentes: " << customer.qtdDependents << endl;
-        }
-        
-        cout << '\n' << endl;
-    }
-
-    fseek(customer_file, 0, SEEK_END);
-}
-
-FILE* create_customer_file (char *fileName) {
-	FILE* file = fopen(fileName, "r+b");
-
-	if (!file) {
-		file = fopen(fileName, "wb");
-
-		if (!file) {
-			printf("Não foi possível criar o arquivo de clientes!");
+		if (!fp) {
+			printf("Não foi possível criar o arquivo %s\n", fname);
 			exit(1);
 		}
 
-		fclose(file);
+		fclose(fp);
 
-		file = fopen(fileName, "r+b");
+		fp = fopen(fname, "r+b");
 
-		if (!file) {
-			printf("Não foi possível criar o arquivo de clientes!");
+		if (!fp) {
+			printf("Não foi possível abrir o arquivo %s\n", fname);
 			exit(1);
 		}
+
+		printf("Arquivo %s criado com sucesso!\n", fname);
 	}
 
-	printf("Arquivo de clientes criado!\n");
+	printf("Arquivo %s aberto\n", fname);
 
-	return file;
+	return fp;
 }
 
-FILE* create_id_file(char *fileName) {
-	FILE* file = fopen(fileName, "r+b");
+FILE* criar_codigo(char *fname) {
+	
+	FILE* fp = fopen(fname, "r+b");
 
-	if (!file) {
-		file = fopen(fileName, "wb");
-		int lastId = 0;
+	if (!fp) {
+		fp = fopen(fname, "wb");
+		int ultimo_codigo = 0;
 
-		if (!file) {
-			printf("Não foi possível criar o arquivo que armazena o código!");
+		if (!fp) {
+			printf("Não foi possível criar o arquivo %s\n", fname);
 			exit(1);
 		}
 		
-		fwrite(&lastId, sizeof(int), 1, file);
-		fclose(file);
+		fwrite(&ultimo_codigo, sizeof(int), 1, fp);
+		fclose(fp);
 
-		file = fopen(fileName, "r+b");
+		fp = fopen(fname, "r+b");
 
-		if (!file) {
-			printf("Não foi possível criar o arquivo que armazena o código!");
+		if (!fp) {
+			printf("Não foi possível abrir o arquivo %s\n", fname);
 			exit(1);
 		}
+
+		printf("Arquivo %s criado com sucesso\n", fname);
 	}
-	
-    printf("Arquivo do código criado com sucesso!\n");
 
-	return file;
+	printf("Arquivo %s aberto\n", fname);
+
+	return fp;
 }
 
-void close_file() {
-    cout << "Arquivos fechados!" << endl;
+void menu() {
+	int opcao;
 
-    fclose(customer_file);
-    fclose(customer_last_id);
+	do {
+		printf("\n =-=-=-=-=-= MENU =-=-=-=-=-= \n"); 
+		printf(" 1 - Cadastrar Cliente \n"); 
+		printf(" 2 - Listar todos os Clientes \n");
+		printf(" 3 - Alterar Cliente \n");
+		printf(" 4 - Excluir Cliente \n");
+		printf(" 5 - Sair\n"); 
+
+		printf("Digite uma opção: \n");
+		scanf("%i", &opcao);
+        
+	switch(opcao) {
+		case 1:
+			cadastrar_cliente();
+			break;
+		case 2:
+			listar_clientes();
+			break;
+		case  3:
+			alterar_cliente();
+			break;
+		case  4:
+			excluir_cliente();
+			break;
+		case 5:
+        printf("Fechando aplicação!\n");
+			break;
+		}  
+	} while (opcao != 5);
+
 }
 
-int exit_program() {
-    cout << "Fim do programa!" << endl;
-    return 0;
-}
+int main () {
+	char fcliente[] = "arquivo-clientes.txt";
+	char fultimo_codigo[] = "arquivo-codigo.txt";
 
-int menu() {
-    int option;
-
-    do {
-        cout << "=-=-=-=-=-= MENU =-=-=-=-=-=" << endl;
-
-        cout << "1 - Cadastrar Cliente" << endl;
-        cout << "2 - Excluir Cliente" << endl;
-        cout << "3 - Modificar Cliente" << endl;
-        cout << "4 - Listar Clientes" << endl;
-        cout << "5 - Sair" << endl;
-
-        cout << "Escolha uma opção: ";
-        std::cin >> option;
-
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
-        switch (option) {
-            case 1:
-                insert_customer();
-                break;
-            case 2:
-                delete_customer();
-                break;
-            case 3:
-                update_customer();
-                break;
-            case 4:
-                list_customers();
-                break;
-            case 5:
-                exit_program();
-                close_file();
-                break;
-        }
-    } while (option != 5);
-
-    return 0;
-}
-
-int main() {
-    char fileCustomer[] = "file_customers.txt";
-    char idFile[] = "file_last_id.txt";
-
-    customer_file = create_id_file((char*)idFile);
-    customer_last_id = create_customer_file((char*)fileCustomer);
+	fp_cliente = abrir_criar_arquivo((char*)fcliente);
+	fp_ultimo_codigo = criar_codigo((char*)fultimo_codigo);
     
-    menu();
+	menu();
 
-    return 0;
+	fclose(fp_cliente);
+	fclose(fp_ultimo_codigo);
+
+	return 0;
 }
